@@ -1343,7 +1343,7 @@ export const AdminDashboardPage: React.FC = () => {
                   Direct Image URL / CDN Link:
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   required
                   value={newImage}
                   onChange={(e) => setNewImage(e.target.value)}

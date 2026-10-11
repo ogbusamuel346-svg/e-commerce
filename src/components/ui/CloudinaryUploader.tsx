@@ -93,8 +93,25 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
       onUploadSuccess(result.secureUrl, result);
       showToast('Image uploaded successfully!', 'success');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Upload failed. Please check network connection.');
-      showToast(`Upload failed: ${err.message}`, 'error');
+      const isUnsignedError = err.message?.includes('whitelisted for unsigned uploads');
+      const friendlyMsg = isUnsignedError
+        ? 'Your Cloudinary Upload Preset is currently set to "Signed". In your Cloudinary Console (Settings > Upload > Upload presets), please edit your preset and change Signing Mode to "Unsigned".'
+        : (err.message || 'Upload failed. Please check network connection.');
+      setErrorMsg(friendlyMsg);
+      showToast(isUnsignedError ? 'Preset is Signed. Using image data directly.' : `Upload failed: ${err.message}`, isUnsignedError ? 'info' : 'error');
+
+      // Local fallback: convert file to image data URL so product creation is never blocked
+      if (typeof file !== 'string') {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target?.result as string;
+          if (dataUrl) {
+            setPreviewUrl(dataUrl);
+            onUploadSuccess(dataUrl);
+          }
+        };
+        reader.readAsDataURL(file as File);
+      }
     } finally {
       setIsUploading(false);
     }
