@@ -7,6 +7,7 @@ import {
   loginWithFirebaseAuth,
   loginWithFirebaseGoogle,
   createAdminInFirebaseAuth,
+  registerWithFirebaseAuth,
   logoutFirebaseAuth,
   isAdministratorEmail,
   sendFirebasePasswordReset,
@@ -20,7 +21,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<{ success: boolean; message: string; isAdmin?: boolean; needsEmailPasswordProviderEnabled?: boolean }>;
   loginWithGoogle: () => Promise<{ success: boolean; message: string; isAdmin?: boolean }>;
   createFirebaseAdmin: (email: string, pass: string) => Promise<{ success: boolean; message: string }>;
-  signup: (name: string, email: string, pass: string, phone?: string) => { success: boolean; message: string };
+  signup: (name: string, email: string, pass: string, phone?: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   updateUserRole: (userId: string, newRole: UserRole) => void;
   deleteUser: (userId: string) => void;
@@ -270,7 +271,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: false, message: res.message };
   };
 
-  const signup = (name: string, email: string, pass: string, phone?: string) => {
+  const signup = async (
+    name: string,
+    email: string,
+    pass: string,
+    phone?: string
+  ): Promise<{ success: boolean; message: string }> => {
     const cleanEmail = email.trim().toLowerCase();
     const existing = usersList.find((u) => u.email.toLowerCase() === cleanEmail);
 
@@ -278,11 +284,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, message: 'An account with this email already exists. Please log in.' };
     }
 
-    const newUser: User = {
+    // Attempt registration in Firebase Auth
+    let registeredUser: User | null = null;
+    try {
+      const fbRes = await registerWithFirebaseAuth(cleanEmail, pass, name, phone);
+      if (fbRes.success && fbRes.user) {
+        registeredUser = fbRes.user;
+      } else if (fbRes.message && fbRes.message.includes('already exists in Firebase')) {
+        return { success: false, message: fbRes.message };
+      }
+    } catch (fbErr) {
+      console.warn('Firebase registration fallback note:', fbErr);
+    }
+
+    const newUser: User = registeredUser || {
       id: `user-${Date.now()}`,
       name: name.trim(),
       email: cleanEmail,
-      role: 'customer',
+      role: isAdministratorEmail(cleanEmail) ? 'admin' : 'customer',
       phone: phone?.trim() || '+1 (555) 000-0000',
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       password: pass,

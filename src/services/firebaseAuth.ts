@@ -205,6 +205,88 @@ export async function createAdminInFirebaseAuth(
   }
 }
 
+export async function registerWithFirebaseAuth(
+  email: string,
+  pass: string,
+  name: string,
+  phone?: string
+): Promise<FirebaseAuthResult> {
+  const cleanEmail = email.trim().toLowerCase();
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+    if (name.trim()) {
+      try {
+        await updateProfile(cred.user, { displayName: name.trim() });
+      } catch {
+        // non-blocking
+      }
+    }
+
+    const isAdmin = isAdministratorEmail(cleanEmail);
+    const role: UserRole = isAdmin ? 'admin' : 'customer';
+
+    try {
+      await setDoc(
+        doc(db, 'users', cred.user.uid),
+        {
+          id: cred.user.uid,
+          name: name.trim() || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          role,
+          phone: phone?.trim() || '',
+          createdAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch {
+      // non-blocking
+    }
+
+    const appUser: User = {
+      id: cred.user.uid,
+      name: name.trim() || cleanEmail.split('@')[0],
+      email: cleanEmail,
+      role,
+      phone: phone?.trim() || undefined,
+      joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    };
+
+    return {
+      success: true,
+      message: 'Account registered successfully in Firebase Auth!',
+      user: appUser,
+      firebaseUser: cred.user,
+      isAdmin,
+    };
+  } catch (err: any) {
+    const errorCode = err?.code || '';
+    if (errorCode === 'auth/email-already-in-use') {
+      return {
+        success: false,
+        message: 'An account with this email already exists in Firebase. Please sign in or reset your password.',
+      };
+    }
+    if (errorCode === 'auth/weak-password') {
+      return {
+        success: false,
+        message: 'Password must be at least 6 characters long.',
+      };
+    }
+    if (errorCode === 'auth/operation-not-allowed') {
+      return {
+        success: false,
+        needsEmailPasswordProviderEnabled: true,
+        message:
+          'Email/Password sign-in is disabled in your Firebase project. Please enable Email/Password provider in the Firebase Console (Authentication > Sign-in method).',
+      };
+    }
+    return {
+      success: false,
+      message: err?.message || 'Failed to register account in Firebase.',
+    };
+  }
+}
+
 export async function loginWithFirebaseGoogle(): Promise<FirebaseAuthResult> {
   try {
     const provider = new GoogleAuthProvider();

@@ -121,9 +121,15 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <p className="text-xs text-slate-600">
                 A password reset link was dispatched to <strong className="text-slate-800 font-semibold">{email}</strong>. Open the link in your email to choose a new password.
               </p>
-              <p className="text-[11px] text-slate-400">
-                Be sure to check your spam or junk folder if you don&apos;t see it in a few minutes.
-              </p>
+
+              <div className="text-left bg-white border border-slate-200/80 rounded-lg p-3 space-y-1.5 text-[11px] text-slate-600 mt-2">
+                <span className="font-semibold text-slate-800 block text-xs">Didn&apos;t receive the email?</span>
+                <ul className="list-disc list-inside space-y-1 text-slate-500">
+                  <li>Check your <strong>Spam</strong>, <strong>Junk</strong>, or <strong>Promotions</strong> folder (sent from <span className="font-mono text-[10px] text-slate-700">noreply@gen-lang-client-0267437691.firebaseapp.com</span>).</li>
+                  <li><strong>Account exists check:</strong> For privacy protection, a success notice is shown even if the email has not yet been registered. Ensure this address was registered on NovaMobile.</li>
+                  <li>Delivery can occasionally take 1–3 minutes depending on your email provider.</li>
+                </ul>
+              </div>
             </div>
 
             <button

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Smartphone, User, ArrowRight, ShieldCheck, Phone } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Smartphone, User, ArrowRight, ShieldCheck, Phone, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -12,11 +12,12 @@ export const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !password) {
       showToast('Please fill out all required fields', 'warning');
@@ -31,11 +32,16 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    const res = signup(name, email, password, phone);
-    if (res.success) {
-      navigate('/');
-    } else {
-      showToast(res.message, 'error');
+    setIsLoading(true);
+    try {
+      const res = await signup(name, email, password, phone);
+      if (res.success) {
+        navigate('/');
+      } else {
+        showToast(res.message, 'error');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -153,10 +159,20 @@ export const RegisterPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+            disabled={isLoading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            <span>Create Account</span>
-            <ArrowRight className="w-4 h-4" />
+            {isLoading ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Creating Account...</span>
+              </>
+            ) : (
+              <>
+                <span>Create Account</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 
