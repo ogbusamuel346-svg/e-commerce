@@ -180,10 +180,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             joinedDate: 'Jan 10, 2025',
           };
           setCurrentUser(adminUser);
-          showToast('Signed in as Admin. Note: Enable Email/Password in Firebase Console for cloud sync.', 'info');
+          showToast('Signed in as Administrator.', 'success');
           return {
             success: true,
-            message: 'Signed in as Administrator. To enable full Firebase Auth cloud sync, please enable Email/Password provider in your Firebase console.',
+            message: 'Signed in as Administrator.',
             isAdmin: true,
             needsEmailPasswordProviderEnabled: true,
           };

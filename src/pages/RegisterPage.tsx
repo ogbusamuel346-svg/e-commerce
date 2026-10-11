@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Smartphone, User, ArrowRight, ShieldCheck, Phone, Database } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Smartphone, User, ArrowRight, ShieldCheck, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { FirebaseSetupModal } from '../components/ui/FirebaseSetupModal';
 
 export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -13,7 +12,6 @@ export const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
-  const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState(false);
   const { signup } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -169,29 +167,8 @@ export const RegisterPage: React.FC = () => {
               Sign In Here
             </Link>
           </div>
-
-          <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-amber-500/20 text-amber-700 flex items-center justify-center">
-                <Database className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-[11px] font-medium text-slate-700">Custom Firebase Backend?</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsFirebaseModalOpen(true)}
-              className="text-[11px] font-bold text-amber-700 hover:text-amber-800 underline cursor-pointer"
-            >
-              Add Credentials
-            </button>
-          </div>
         </div>
       </div>
-
-      <FirebaseSetupModal
-        isOpen={isFirebaseModalOpen}
-        onClose={() => setIsFirebaseModalOpen(false)}
-      />
     </div>
   );
 };

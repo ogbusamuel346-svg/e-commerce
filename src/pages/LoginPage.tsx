@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Smartphone, ArrowRight, ShieldCheck, Info, KeyRound, Database } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, Smartphone, ArrowRight, ShieldCheck, Info, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { FirebaseSetupModal } from '../components/ui/FirebaseSetupModal';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,7 +10,6 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -165,26 +163,6 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Setup Firebase backend & credentials */}
-        <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-700 flex items-center justify-center">
-              <Database className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-800">Firebase Backend Setup</p>
-              <p className="text-[11px] text-slate-500">Connect Firestore &amp; Auth credentials</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsFirebaseModalOpen(true)}
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
-          >
-            Configure
-          </button>
-        </div>
-
         <div className="pt-2 text-center text-xs text-slate-500">
           <span>Don&apos;t have an account yet? </span>
           <Link to="/register" className="font-bold text-blue-600 hover:underline">
@@ -192,11 +170,6 @@ export const LoginPage: React.FC = () => {
           </Link>
         </div>
       </div>
-
-      <FirebaseSetupModal
-        isOpen={isFirebaseModalOpen}
-        onClose={() => setIsFirebaseModalOpen(false)}
-      />
     </div>
   );
 };

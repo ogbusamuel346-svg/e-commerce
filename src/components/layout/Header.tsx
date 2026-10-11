@@ -13,8 +13,6 @@ import {
   LogOut,
   ShieldCheck,
   Package,
-  Database,
-  Cloud,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -22,8 +20,6 @@ import { useCompare } from '../../context/CompareContext';
 import { useAuth } from '../../context/AuthContext';
 import { useStoreManage } from '../../context/StoreManageContext';
 import { SearchBar } from '../ui/SearchBar';
-import { FirebaseSetupModal } from '../ui/FirebaseSetupModal';
-import { CloudinarySetupModal } from '../ui/CloudinarySetupModal';
 
 export const Header: React.FC = () => {
   const { itemCount } = useCart();
@@ -33,8 +29,6 @@ export const Header: React.FC = () => {
   const { headerTickerText } = useStoreManage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState(false);
-  const [isCloudinaryModalOpen, setIsCloudinaryModalOpen] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -204,28 +198,6 @@ export const Header: React.FC = () => {
                     <Package className="w-4 h-4 text-slate-400" />
                     <span>Checkout Flow</span>
                   </Link>
-
-                  <button
-                    onClick={() => {
-                      setAccountMenuOpen(false);
-                      setIsCloudinaryModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-blue-700 bg-blue-50/70 hover:bg-blue-100/70 border-t border-blue-100 cursor-pointer text-left"
-                  >
-                    <Cloud className="w-4 h-4 text-blue-600" />
-                    <span>Cloudinary Storage Setup</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setAccountMenuOpen(false);
-                      setIsFirebaseModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-amber-700 bg-amber-50/70 hover:bg-amber-100/70 border-t border-amber-100 cursor-pointer text-left"
-                  >
-                    <Database className="w-4 h-4 text-amber-600" />
-                    <span>Firebase Credentials Setup</span>
-                  </button>
 
                   <div className="border-t border-slate-100 mt-1 pt-1">
                     {currentUser ? (
@@ -400,44 +372,8 @@ export const Header: React.FC = () => {
               </Link>
             )}
           </div>
-
-          <div className="pt-1 space-y-1.5">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsCloudinaryModalOpen(true);
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-blue-50 text-blue-800 font-bold text-xs rounded-lg border border-blue-200 cursor-pointer"
-            >
-              <Cloud className="w-4 h-4 text-blue-600" />
-              <span>Cloudinary Storage Setup</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsFirebaseModalOpen(true);
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-amber-50 text-amber-800 font-bold text-xs rounded-lg border border-amber-200 cursor-pointer"
-            >
-              <Database className="w-4 h-4 text-amber-600" />
-              <span>Firebase Credentials Setup</span>
-            </button>
-          </div>
         </div>
       )}
-
-      {/* Cloudinary Setup Modal Dialog */}
-      <CloudinarySetupModal
-        isOpen={isCloudinaryModalOpen}
-        onClose={() => setIsCloudinaryModalOpen(false)}
-      />
-
-      {/* Firebase Setup Modal Dialog */}
-      <FirebaseSetupModal
-        isOpen={isFirebaseModalOpen}
-        onClose={() => setIsFirebaseModalOpen(false)}
-      />
     </header>
   );
 };

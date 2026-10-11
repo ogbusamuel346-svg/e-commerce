@@ -250,7 +250,7 @@ export const StoreManageProvider: React.FC<{ children: React.ReactNode }> = ({ c
           : p
       )
     );
-    showToast('Product smartphone image updated with Cloudinary asset!', 'success');
+    showToast('Product smartphone image updated successfully!', 'success');
   };
 
   const toggleProductFeatured = (productId: string) => {

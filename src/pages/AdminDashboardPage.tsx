@@ -6,16 +6,8 @@ import { useToast } from '../context/ToastContext';
 import { Product, BrandName } from '../types/product';
 import { OrderStatus } from '../types/order';
 import { Modal } from '../components/ui/Modal';
-import { FirebaseSetupModal } from '../components/ui/FirebaseSetupModal';
-import { CloudinarySetupModal } from '../components/ui/CloudinarySetupModal';
 import { CloudinaryUploader } from '../components/ui/CloudinaryUploader';
 import {
-  getStoredFirebaseConfig,
-  FirebaseCustomConfig,
-} from '../services/firebaseConfigStore';
-import {
-  getStoredCloudinaryConfig,
-  CloudinaryConfig,
   getRecentUploadedMedia,
   removeMediaAsset,
   UploadedMediaAsset,
@@ -83,25 +75,14 @@ export const AdminDashboardPage: React.FC = () => {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'orders' | 'users' | 'cloudinary' | 'firebase' | 'settings'>('overview');
-  const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState(false);
-  const [firebaseConfig, setFirebaseConfig] = useState<FirebaseCustomConfig | null>(null);
-
-  // Cloudinary Storage state
-  const [isCloudinaryModalOpen, setIsCloudinaryModalOpen] = useState(false);
-  const [cloudinaryConfig, setCloudinaryConfig] = useState<CloudinaryConfig | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'orders' | 'users' | 'media' | 'settings'>('overview');
   const [recentMediaList, setRecentMediaList] = useState<UploadedMediaAsset[]>([]);
   const [editingProductForImage, setEditingProductForImage] = useState<Product | null>(null);
   const [targetProductForMedia, setTargetProductForMedia] = useState<string>('');
 
   useEffect(() => {
-    setFirebaseConfig(getStoredFirebaseConfig());
-  }, [isFirebaseModalOpen]);
-
-  useEffect(() => {
-    setCloudinaryConfig(getStoredCloudinaryConfig());
     setRecentMediaList(getRecentUploadedMedia());
-  }, [isCloudinaryModalOpen, activeTab]);
+  }, [activeTab]);
 
   const refreshMedia = () => {
     setRecentMediaList(getRecentUploadedMedia());
@@ -160,18 +141,18 @@ export const AdminDashboardPage: React.FC = () => {
               NovaMobile Command Portal
             </h1>
             <div className="flex items-center justify-center gap-1.5">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Firebase Authentication Gate
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                Command Access Gateway
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Restricted Area (<code className="text-blue-400">/admin</code>). Administrative clearance verified directly by Firebase.
+              Restricted Area (<code className="text-blue-400">/admin</code>). Administrative clearance required.
             </p>
           </div>
 
           <form onSubmit={handleAdminLogin} className="space-y-4 text-xs">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Admin Email (Firebase Auth)</label>
+              <label className="block text-slate-300 font-semibold mb-1">Admin Email</label>
               <input
                 type="email"
                 required
@@ -202,12 +183,12 @@ export const AdminDashboardPage: React.FC = () => {
               {isLoggingIn ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Verifying with Firebase Auth...</span>
+                  <span>Verifying clearance...</span>
                 </>
               ) : (
                 <>
                   <Key className="w-4 h-4" />
-                  <span>Authenticate with Firebase</span>
+                  <span>Sign In as Administrator</span>
                 </>
               )}
             </button>
@@ -229,7 +210,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              <span>Firebase Google Sign-In</span>
+              <span>Sign In with Google</span>
             </button>
           </form>
 
@@ -405,8 +386,7 @@ export const AdminDashboardPage: React.FC = () => {
             { id: 'inventory', label: `Inventory (${products.length})`, icon: Smartphone },
             { id: 'orders', label: `Orders (${orders.length})`, icon: ShoppingBag },
             { id: 'users', label: `Users & Staff (${usersList.length})`, icon: Users },
-            { id: 'cloudinary', label: 'Cloudinary Media Storage', icon: Cloud },
-            { id: 'firebase', label: 'Firebase Backend & Auth', icon: Database },
+            { id: 'media', label: 'Media & Product Images', icon: ImageIcon },
             { id: 'settings', label: 'Store & Promos', icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -733,7 +713,7 @@ export const AdminDashboardPage: React.FC = () => {
                               type="button"
                               onClick={() => setEditingProductForImage(p)}
                               className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded cursor-pointer transition-colors"
-                              title="Update Smartphone Photo with Cloudinary"
+                              title="Update Smartphone Photo"
                             >
                               <UploadCloud className="w-4 h-4" />
                             </button>
@@ -927,147 +907,30 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* ==================== TAB: CLOUDINARY MEDIA STORAGE ==================== */}
-        {activeTab === 'cloudinary' && (
+        {/* ==================== TAB: PRODUCT MEDIA & STORAGE ==================== */}
+        {activeTab === 'media' && (
           <div className="space-y-6">
             {/* Top Banner / Status */}
             <div className="bg-gradient-to-r from-blue-950/60 via-indigo-950/40 to-slate-900 border border-blue-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2.5">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/40 text-blue-400 flex items-center justify-center">
-                    <Cloud className="w-5 h-5 stroke-[2.2]" />
+                    <ImageIcon className="w-5 h-5 stroke-[2.2]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-extrabold text-base text-white tracking-tight">
-                        Cloudinary Cloud Storage &amp; Media CDN
+                        Product Media Storage &amp; Asset CDN
                       </h3>
-                      {cloudinaryConfig?.cloudName && cloudinaryConfig?.uploadPreset ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          Active &amp; Configured
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          Credentials Required
-                        </span>
-                      )}
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Cloud Storage Active
+                      </span>
                     </div>
                     <p className="text-xs text-slate-400">
-                      Store smartphone images, promotional banners, and catalogue media with automatic WebP/AVIF compression.
+                      Store high-resolution smartphone photography, catalogue assets, and promotional banners with automatic responsive compression.
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsCloudinaryModalOpen(true)}
-                  className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer"
-                >
-                  <Key className="w-4 h-4" />
-                  <span>
-                    {cloudinaryConfig?.cloudName ? 'Update Cloudinary Credentials' : 'Set Up Cloudinary Credentials'}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Cloudinary Parameters Overview Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                    <Cloud className="w-4 h-4 text-blue-400" />
-                    <span>Cloudinary Storage Profile</span>
-                  </h4>
-                  <button
-                    onClick={() => setIsCloudinaryModalOpen(true)}
-                    className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
-                  >
-                    Edit Credentials
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">Cloud Name</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {cloudinaryConfig?.cloudName || 'Not configured (click Setup to add)'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">Upload Preset (Unsigned)</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {cloudinaryConfig?.uploadPreset || 'Not configured'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">Target Storage Folder</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {cloudinaryConfig?.folder || 'novamobile_products'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">Delivery CDN Host</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {cloudinaryConfig?.cloudName
-                        ? `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/image/upload/`
-                        : 'https://res.cloudinary.com/<cloud_name>/image/upload/'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Client-side direct unsigned REST upload: Enabled</span>
-                  </span>
-                  <a
-                    href="https://console.cloudinary.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1 font-semibold"
-                  >
-                    <span>Cloudinary Web Console</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Cloudinary CDN Speed & Optimization Card */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3.5 flex flex-col justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-white flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                    <span>Automatic Optimizations</span>
-                  </h4>
-                  <ul className="space-y-2 text-xs text-slate-400">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                      <span><strong>f_auto:</strong> Serves modern AVIF / WebP to cutting-edge browsers.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                      <span><strong>q_auto:</strong> Perceptual compression saving up to 65% network payload.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                      <span><strong>Global Edge:</strong> Akamai and Fastly multi-CDN media distribution.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsCloudinaryModalOpen(true)}
-                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold text-xs rounded-xl border border-slate-700 transition-colors cursor-pointer"
-                >
-                  Manage Storage Credentials
-                </button>
               </div>
             </div>
 
@@ -1077,35 +940,35 @@ export const AdminDashboardPage: React.FC = () => {
                 <div>
                   <h4 className="font-bold text-sm text-white flex items-center gap-2">
                     <UploadCloud className="w-4 h-4 text-blue-400" />
-                    <span>Interactive Cloudinary Upload Workbench</span>
+                    <span>Product Image Upload Workbench</span>
                   </h4>
                   <p className="text-[11px] text-slate-400">
-                    Upload smartphone images, banner graphics, or accessories directly to your Cloudinary media storage.
+                    Upload smartphone images, banner graphics, or accessories directly to media storage.
                   </p>
                 </div>
               </div>
 
               <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl">
                 <CloudinaryUploader
-                  label="Upload Smartphone Photo to Cloudinary"
+                  label="Upload Smartphone Photo"
                   helperText="Drag & drop phone image or click to browse (PNG, JPG, WEBP, AVIF)"
-                  onUploadSuccess={(url) => {
+                  onUploadSuccess={() => {
                     refreshMedia();
                   }}
                 />
               </div>
             </div>
 
-            {/* Cloudinary Media Library & Recent Uploads Gallery */}
+            {/* Product Media Library & Recent Uploads Gallery */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="font-bold text-sm text-white flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-emerald-400" />
-                    <span>Cloudinary Media Library &amp; Gallery ({recentMediaList.length} assets)</span>
+                    <span>Product Media Library &amp; Gallery ({recentMediaList.length} assets)</span>
                   </h4>
                   <p className="text-[11px] text-slate-400">
-                    Recent assets hosted in Cloudinary. Click to copy URL or assign to an existing smartphone in your catalogue.
+                    Recent assets hosted in storage. Click to copy URL or assign to an existing smartphone in your catalogue.
                   </p>
                 </div>
 
@@ -1132,7 +995,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div className="text-center py-8 text-slate-500 text-xs">
                   <Cloud className="w-8 h-8 mx-auto mb-2 opacity-40 text-blue-400" />
                   <p>No uploaded media assets yet.</p>
-                  <p className="text-[11px] text-slate-600 mt-1">Upload an image above to populate your Cloudinary media gallery.</p>
+                  <p className="text-[11px] text-slate-600 mt-1">Upload an image above to populate your media gallery.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1163,7 +1026,7 @@ export const AdminDashboardPage: React.FC = () => {
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
                             <span>{asset.width && asset.height ? `${asset.width}×${asset.height}` : 'HD'}</span>
                             <span>·</span>
-                            <span>{asset.size ? `${Math.round(asset.size / 1024)} KB` : 'Cloudinary'}</span>
+                            <span>{asset.size ? `${Math.round(asset.size / 1024)} KB` : 'HD Asset'}</span>
                             <span>·</span>
                             <span>{asset.uploadedAt}</span>
                           </div>
@@ -1174,7 +1037,7 @@ export const AdminDashboardPage: React.FC = () => {
                             type="button"
                             onClick={() => {
                               navigator.clipboard.writeText(asset.secureUrl || asset.url);
-                              showToast('Cloudinary image URL copied to clipboard!', 'success');
+                              showToast('Image URL copied to clipboard!', 'success');
                             }}
                             className="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-[11px] rounded-lg border border-slate-800 flex items-center justify-center gap-1 cursor-pointer transition-colors"
                           >
@@ -1189,7 +1052,7 @@ export const AdminDashboardPage: React.FC = () => {
                                 updateProductImage(targetProductForMedia, asset.secureUrl || asset.url);
                               }}
                               className="py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg shadow-sm cursor-pointer transition-colors"
-                              title="Assign this Cloudinary photo to selected smartphone"
+                              title="Assign this photo to selected smartphone"
                             >
                               Apply
                             </button>
@@ -1222,165 +1085,6 @@ export const AdminDashboardPage: React.FC = () => {
                   ))}
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* ==================== TAB 5: FIREBASE BACKEND & STORAGE ==================== */}
-        {activeTab === 'firebase' && (
-          <div className="space-y-6">
-            {/* Top Banner / Status */}
-            <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-blue-950/40 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center">
-                    <Database className="w-5 h-5 stroke-[2.2]" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-extrabold text-base text-white tracking-tight">
-                        Firebase Backend &amp; Authentication Integration
-                      </h3>
-                      {firebaseConfig ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          Active &amp; Configured
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          Ready for Credentials
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      Connect your Cloud Firestore and Authentication directly to NovaMobile.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsFirebaseModalOpen(true)}
-                className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all cursor-pointer shrink-0"
-              >
-                <Key className="w-4 h-4" />
-                <span>{firebaseConfig ? 'Update Firebase Credentials' : 'Add Firebase Credentials'}</span>
-              </button>
-            </div>
-
-            {/* Current Credentials Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Credentials Details Card */}
-              <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                    <Cloud className="w-4 h-4 text-blue-400" />
-                    <span>Configured Project Parameters</span>
-                  </h4>
-                  <button
-                    onClick={() => setIsFirebaseModalOpen(true)}
-                    className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
-                  >
-                    Edit Credentials
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">Project ID</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {firebaseConfig?.projectId || 'gen-lang-client-0267437691 (Default)'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">Auth Domain</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {firebaseConfig?.authDomain || `${firebaseConfig?.projectId || 'gen-lang-client-0267437691'}.firebaseapp.com`}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1 sm:col-span-2">
-                    <span className="text-[11px] text-slate-500 font-medium">Web App ID</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {firebaseConfig?.appId || '1:700826874787:web:483d00edead8344ca5e016'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1 sm:col-span-2">
-                    <span className="text-[11px] text-slate-500 font-medium">API Key</span>
-                    <p className="font-mono text-slate-200 font-bold truncate">
-                      {firebaseConfig?.apiKey
-                        ? `${firebaseConfig.apiKey.substring(0, 10)}****************`
-                        : 'AIzaSyBs2J5GHM52bhD5HUKZsZZviLUV7nLfXow'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center justify-between text-xs text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Client initialization sync status: Ready</span>
-                  </span>
-                  <a
-                    href="https://console.firebase.google.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1 font-semibold"
-                  >
-                    <span>Firebase Console</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Supported Services Info */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                  <HardDrive className="w-4 h-4 text-amber-400" />
-                  <span>Managed Cloud Services</span>
-                </h4>
-
-                <div className="space-y-3 text-xs">
-                  <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1">
-                    <div className="flex items-center justify-between">
-                      <strong className="text-white">Cloud Firestore</strong>
-                      <span className="text-[10px] text-emerald-400 font-bold">Enabled</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">
-                      Stores smartphone catalogue, specs, real-time reviews, and customer orders.
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1">
-                    <div className="flex items-center justify-between">
-                      <strong className="text-white">Cloudinary Storage</strong>
-                      <span className="text-[10px] text-cyan-400 font-bold">Integrated</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">
-                      Hosts product photography, marketing banners, and media assets.
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1">
-                    <div className="flex items-center justify-between">
-                      <strong className="text-white">Firebase Authentication</strong>
-                      <span className="text-[10px] text-emerald-400 font-bold">Enabled</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">
-                      Handles customer and administrator authentication, sessions, and roles.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsFirebaseModalOpen(true)}
-                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-colors cursor-pointer"
-                >
-                  Configure Credentials
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -1624,8 +1328,8 @@ export const AdminDashboardPage: React.FC = () => {
 
             <div className="sm:col-span-2 space-y-2">
               <CloudinaryUploader
-                label="Smartphone Image (Upload via Cloudinary)"
-                helperText="Upload phone picture to Cloudinary storage or enter URL below"
+                label="Smartphone Image"
+                helperText="Upload phone picture to storage or enter URL below"
                 currentImageUrl={newImage}
                 onUploadSuccess={(url) => {
                   if (url) {
@@ -1636,14 +1340,14 @@ export const AdminDashboardPage: React.FC = () => {
               />
               <div className="pt-1">
                 <label className="block font-medium text-[11px] text-slate-500 mb-1">
-                  Direct Image URL / Cloudinary CDN Link:
+                  Direct Image URL / CDN Link:
                 </label>
                 <input
                   type="url"
                   required
                   value={newImage}
                   onChange={(e) => setNewImage(e.target.value)}
-                  placeholder="https://res.cloudinary.com/... or https://images.unsplash.com/..."
+                  placeholder="https://images.unsplash.com/... or direct image URL"
                   className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -1668,17 +1372,7 @@ export const AdminDashboardPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Modal: Cloudinary Setup Dialog */}
-      <CloudinarySetupModal
-        isOpen={isCloudinaryModalOpen}
-        onClose={() => setIsCloudinaryModalOpen(false)}
-        onSaved={() => {
-          setCloudinaryConfig(getStoredCloudinaryConfig());
-          refreshMedia();
-        }}
-      />
-
-      {/* Modal: Change Smartphone Image via Cloudinary */}
+      {/* Modal: Change Smartphone Image */}
       <Modal
         isOpen={Boolean(editingProductForImage)}
         onClose={() => setEditingProductForImage(null)}
@@ -1688,7 +1382,7 @@ export const AdminDashboardPage: React.FC = () => {
         {editingProductForImage && (
           <div className="space-y-4 text-xs text-slate-800">
             <p className="text-slate-600">
-              Upload a new high-resolution photo directly to Cloudinary storage for this smartphone. Once uploaded, the storefront catalogue will automatically update with the new Cloudinary CDN image.
+              Upload a new high-resolution photo for this smartphone. Once uploaded, the storefront catalogue will automatically update with the new image.
             </p>
 
             <CloudinaryUploader
@@ -1715,12 +1409,6 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         )}
       </Modal>
-
-      {/* Modal: Firebase Setup Dialog */}
-      <FirebaseSetupModal
-        isOpen={isFirebaseModalOpen}
-        onClose={() => setIsFirebaseModalOpen(false)}
-      />
     </div>
   );
 };

@@ -1,25 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Upload,
-  Cloud,
   CheckCircle2,
   AlertCircle,
   Copy,
   ExternalLink,
   RefreshCw,
   Image as ImageIcon,
-  Key,
   X,
-  Sparkles,
 } from 'lucide-react';
 import {
   uploadToCloudinary,
   getStoredCloudinaryConfig,
   CloudinaryUploadResult,
-  getOptimizedCloudinaryUrl,
 } from '../../services/cloudinaryService';
 import { useToast } from '../../context/ToastContext';
-import { CloudinarySetupModal } from './CloudinarySetupModal';
 
 interface CloudinaryUploaderProps {
   onUploadSuccess: (secureUrl: string, result?: CloudinaryUploadResult) => void;
@@ -35,7 +30,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
   currentImageUrl,
   folder = 'novamobile_products',
   compact = false,
-  label = 'Upload Image to Cloudinary',
+  label = 'Upload Product Image',
   helperText = 'PNG, JPG, WEBP, or AVIF up to 10MB',
 }) => {
   const { showToast } = useToast();
@@ -46,17 +41,6 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(currentImageUrl || '');
-  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  const [isConfigured, setIsConfigured] = useState(false);
-
-  const checkConfig = () => {
-    const cfg = getStoredCloudinaryConfig();
-    setIsConfigured(Boolean(cfg.cloudName?.trim() && cfg.uploadPreset?.trim()));
-  };
-
-  useEffect(() => {
-    checkConfig();
-  }, []);
 
   useEffect(() => {
     if (currentImageUrl) {
@@ -88,8 +72,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
     // Check configuration
     const config = getStoredCloudinaryConfig();
     if (!config.cloudName || !config.uploadPreset) {
-      setErrorMsg('Cloudinary credentials missing. Please configure your Cloud Name and Upload Preset.');
-      setIsConfigModalOpen(true);
+      setErrorMsg('Image upload storage not configured. Please check environment configuration.');
       return;
     }
 
@@ -108,9 +91,9 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
       setUploadProgress(100);
       setPreviewUrl(result.secureUrl);
       onUploadSuccess(result.secureUrl, result);
-      showToast('Image uploaded successfully to Cloudinary!', 'success');
+      showToast('Image uploaded successfully!', 'success');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Upload failed. Check Cloudinary upload preset.');
+      setErrorMsg(err.message || 'Upload failed. Please check network connection.');
       showToast(`Upload failed: ${err.message}`, 'error');
     } finally {
       setIsUploading(false);
@@ -157,26 +140,12 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
 
   return (
     <div className="space-y-2">
-      {/* Label and Config Status */}
+      {/* Label */}
       <div className="flex items-center justify-between text-xs">
         <label className="font-bold text-slate-800 flex items-center gap-1.5">
-          <Cloud className="w-3.5 h-3.5 text-blue-600" />
+          <Upload className="w-3.5 h-3.5 text-blue-600" />
           <span>{label}</span>
         </label>
-
-        <button
-          type="button"
-          onClick={() => setIsConfigModalOpen(true)}
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer transition-colors ${
-            isConfigured
-              ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
-              : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
-          }`}
-          title="Click to configure Cloudinary credentials"
-        >
-          <Key className="w-3 h-3" />
-          <span>{isConfigured ? 'Cloudinary Configured' : 'Setup Cloudinary'}</span>
-        </button>
       </div>
 
       {/* Main Upload Drop Area */}
@@ -223,15 +192,13 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
             <div className="flex-1 min-w-0 space-y-1.5 text-left w-full">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">
-                  <Cloud className="w-3 h-3" />
-                  <span>Cloudinary Asset</span>
+                  <ImageIcon className="w-3 h-3" />
+                  <span>Media Asset</span>
                 </span>
-                {previewUrl.startsWith('https://res.cloudinary.com') && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>Hosted on Cloudinary CDN</span>
-                  </span>
-                )}
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>High-Speed CDN</span>
+                </span>
               </div>
 
               <p className="text-xs font-mono text-slate-700 truncate" title={previewUrl}>
@@ -288,7 +255,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
 
             <div>
               <p className="text-xs font-bold text-slate-700">
-                {isUploading ? 'Uploading to Cloudinary...' : 'Click or drag & drop smartphone photo'}
+                {isUploading ? 'Uploading image...' : 'Click or drag & drop smartphone photo'}
               </p>
               <p className="text-[11px] text-slate-500 mt-0.5">{helperText}</p>
             </div>
@@ -305,7 +272,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
               />
             </div>
             <div className="flex justify-between text-[10px] text-slate-500">
-              <span>Uploading to Cloudinary...</span>
+              <span>Uploading image...</span>
               <span>{uploadProgress}%</span>
             </div>
           </div>
@@ -314,33 +281,11 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
 
       {/* Error message */}
       {errorMsg && (
-        <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span className="text-[11px]">{errorMsg}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsConfigModalOpen(true)}
-            className="text-[11px] font-bold text-rose-800 underline shrink-0 cursor-pointer"
-          >
-            Fix Cloudinary
-          </button>
+        <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span className="text-[11px]">{errorMsg}</span>
         </div>
       )}
-
-      {/* Cloudinary Setup Modal */}
-      <CloudinarySetupModal
-        isOpen={isConfigModalOpen}
-        onClose={() => {
-          setIsConfigModalOpen(false);
-          checkConfig();
-        }}
-        onSaved={() => {
-          checkConfig();
-          setErrorMsg(null);
-        }}
-      />
     </div>
   );
 };
