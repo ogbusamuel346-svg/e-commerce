@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Smartphone, ArrowRight, ShieldCheck, Info, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { ForgotPasswordModal } from '../components/ui/ForgotPasswordModal';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -90,9 +92,13 @@ export const LoginPage: React.FC = () => {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="text-slate-700 font-semibold">Password</label>
-              <span className="text-[11px] text-blue-600 hover:underline cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setIsForgotPasswordOpen(true)}
+                className="text-[11px] text-blue-600 hover:underline cursor-pointer"
+              >
                 Forgot password?
-              </span>
+              </button>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -170,6 +176,16 @@ export const LoginPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+        defaultEmail={email}
+        onSuccessReset={(resetEmail, newPass) => {
+          setEmail(resetEmail);
+          if (newPass) setPassword(newPass);
+        }}
+      />
     </div>
   );
 };

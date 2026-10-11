@@ -6,6 +6,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   updateProfile,
+  sendPasswordResetEmail,
   User as FirebaseUser,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -258,3 +259,45 @@ export async function logoutFirebaseAuth(): Promise<void> {
     console.error('Error signing out from Firebase:', err);
   }
 }
+
+export async function sendFirebasePasswordReset(
+  email: string
+): Promise<{ success: boolean; message: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) {
+    return { success: false, message: 'Please provide a valid email address.' };
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, cleanEmail);
+    return {
+      success: true,
+      message: `Password reset link has been dispatched to ${cleanEmail}. Please check your inbox and spam folder.`,
+    };
+  } catch (error: any) {
+    const errorCode = error?.code || '';
+    if (errorCode === 'auth/user-not-found') {
+      return {
+        success: false,
+        message: 'No user account found with this email address.',
+      };
+    }
+    if (errorCode === 'auth/invalid-email') {
+      return {
+        success: false,
+        message: 'The email address is not formatted correctly.',
+      };
+    }
+    if (errorCode === 'auth/too-many-requests') {
+      return {
+        success: false,
+        message: 'Too many requests. Please wait a few moments before trying again.',
+      };
+    }
+    return {
+      success: false,
+      message: error?.message || 'Unable to send password reset email at this time.',
+    };
+  }
+}
+

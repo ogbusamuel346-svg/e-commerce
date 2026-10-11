@@ -7,6 +7,7 @@ import { Product, BrandName } from '../types/product';
 import { OrderStatus } from '../types/order';
 import { Modal } from '../components/ui/Modal';
 import { CloudinaryUploader } from '../components/ui/CloudinaryUploader';
+import { ForgotPasswordModal } from '../components/ui/ForgotPasswordModal';
 import {
   getRecentUploadedMedia,
   removeMediaAsset,
@@ -75,6 +76,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'orders' | 'users' | 'media' | 'settings'>('overview');
   const [recentMediaList, setRecentMediaList] = useState<UploadedMediaAsset[]>([]);
   const [editingProductForImage, setEditingProductForImage] = useState<Product | null>(null);
@@ -164,7 +166,16 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Admin Password</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-slate-300 font-semibold">Admin Password</label>
+                <button
+                  type="button"
+                  onClick={() => setIsForgotModalOpen(true)}
+                  className="text-[11px] text-blue-400 hover:text-blue-300 hover:underline cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <input
                 type="password"
                 required
@@ -223,6 +234,16 @@ export const AdminDashboardPage: React.FC = () => {
             </Link>
           </div>
         </div>
+
+        <ForgotPasswordModal
+          isOpen={isForgotModalOpen}
+          onClose={() => setIsForgotModalOpen(false)}
+          defaultEmail={adminEmail || 'sameduhub2025@gmail.com'}
+          onSuccessReset={(resetEmail, newPass) => {
+            setAdminEmail(resetEmail);
+            if (newPass) setAdminPassword(newPass);
+          }}
+        />
       </div>
     );
   }
