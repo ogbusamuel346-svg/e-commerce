@@ -152,7 +152,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ): Promise<{ success: boolean; message: string; isAdmin?: boolean; needsEmailPasswordProviderEnabled?: boolean }> => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Attempt direct Firebase Authentication (provided by Firebase)
+    // 1. Dedicated, resilient administrator authentication for sameduhub2025@gmail.com
+    if (cleanEmail === 'sameduhub2025@gmail.com') {
+      if (pass !== 'Samuel09034486697@') {
+        return { success: false, message: 'Invalid administrator password.' };
+      }
+
+      // Try Firebase Auth in background
+      try {
+        const fbRes = await loginWithFirebaseAuth(cleanEmail, pass);
+        if (fbRes.success && fbRes.user) {
+          setCurrentUser(fbRes.user);
+          showToast('Signed in as Administrator.', 'success');
+          return { success: true, message: 'Signed in as Administrator.', isAdmin: true };
+        }
+
+        // If user doesn't exist yet in Firebase, try auto-registering admin account
+        try {
+          await createAdminInFirebaseAuth(cleanEmail, pass);
+        } catch {
+          // ignore
+        }
+      } catch (fbErr: any) {
+        console.warn('Firebase Auth invocation warning:', fbErr);
+      }
+
+      // Guaranteed administrator clearance
+      const adminUser: User = {
+        id: 'user-admin-samuel',
+        name: 'Samuel (Administrator)',
+        email: 'sameduhub2025@gmail.com',
+        role: 'admin',
+        phone: '+234 903 448 6697',
+        joinedDate: 'Jan 10, 2025',
+      };
+      setCurrentUser(adminUser);
+      setUsersList((prev) => {
+        const exists = prev.some((u) => u.email.toLowerCase() === cleanEmail);
+        return exists
+          ? prev.map((u) => (u.email.toLowerCase() === cleanEmail ? { ...u, role: 'admin' as const } : u))
+          : [adminUser, ...prev];
+      });
+      showToast('Signed in as Administrator.', 'success');
+      return { success: true, message: 'Signed in as Administrator.', isAdmin: true };
+    }
+
+    // 2. Customer accounts: attempt direct Firebase Authentication
     try {
       const fbRes = await loginWithFirebaseAuth(cleanEmail, pass);
       if (fbRes.success && fbRes.user) {
@@ -168,63 +213,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true, message: fbRes.message, isAdmin: fbRes.isAdmin };
       }
 
-      // If Firebase Auth provider requires enabling in console
-      if (fbRes.needsEmailPasswordProviderEnabled) {
-        if (cleanEmail === 'sameduhub2025@gmail.com' && pass === 'Samuel09034486697@') {
-          const adminUser: User = {
-            id: 'user-admin-samuel',
-            name: 'Samuel (Administrator)',
-            email: 'sameduhub2025@gmail.com',
-            role: 'admin',
-            phone: '+234 903 448 6697',
-            joinedDate: 'Jan 10, 2025',
-          };
-          setCurrentUser(adminUser);
-          showToast('Signed in as Administrator.', 'success');
-          return {
-            success: true,
-            message: 'Signed in as Administrator.',
-            isAdmin: true,
-            needsEmailPasswordProviderEnabled: true,
-          };
-        }
-        return {
-          success: false,
-          message: fbRes.message,
-          needsEmailPasswordProviderEnabled: true,
-        };
-      }
-
-      // If specific Firebase password error
       if (fbRes.message.includes('Invalid email or password')) {
         return { success: false, message: fbRes.message };
       }
     } catch (fbErr: any) {
       console.warn('Firebase Auth invocation warning:', fbErr);
-    }
-
-    // 2. Specific administrator verification fallback for sameduhub2025@gmail.com
-    if (cleanEmail === 'sameduhub2025@gmail.com') {
-      if (pass === 'Samuel09034486697@') {
-        let adminUser = usersList.find((u) => u.email.toLowerCase() === cleanEmail);
-        if (!adminUser) {
-          adminUser = {
-            id: 'user-admin-samuel',
-            name: 'Samuel (Administrator)',
-            email: 'sameduhub2025@gmail.com',
-            role: 'admin',
-            phone: '+234 903 448 6697',
-            joinedDate: 'Jan 10, 2025',
-            password: 'Samuel09034486697@',
-          };
-          setUsersList((prev) => [adminUser!, ...prev]);
-        }
-        setCurrentUser(adminUser);
-        showToast(`Signed in successfully as Administrator (${adminUser.name})`, 'success');
-        return { success: true, message: 'Signed in successfully as Administrator', isAdmin: true };
-      } else {
-        return { success: false, message: 'Invalid administrator password.' };
-      }
     }
 
     const found = usersList.find((u) => u.email.toLowerCase() === cleanEmail);

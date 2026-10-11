@@ -44,10 +44,7 @@ function MainLayout() {
   if (isAdminRoute) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
-        <Routes>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="*" element={<AdminDashboardPage />} />
-        </Routes>
+        <AdminDashboardPage />
         <ToastContainer />
       </div>
     );
