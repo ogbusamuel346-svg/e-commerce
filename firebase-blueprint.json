@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "Administrator clearance record matching trusted Firebase Auth UIDs",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Administrator email address"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"],
+          "description": "System role"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of last administrative update"
+        }
+      },
+      "required": ["email", "role"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered customer or administrator profile in the storefront",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "User identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["customer", "admin"],
+          "description": "User authorization role"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number"
+        },
+        "joinedDate": {
+          "type": "string",
+          "description": "Date user registered"
+        }
+      },
+      "required": ["id", "name", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Trusted admin role lookup table for RBAC verification"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles managed via authentication"
+    }
+  }
+}

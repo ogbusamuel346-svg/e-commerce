@@ -1,0 +1,6 @@
+{
+  "name": "NovaMobile - Modern Smartphone Store",
+  "description": "A modern, high-performance smartphone e-commerce platform inspired by top electronics storefronts with real-time filtering, variant selectors, tech specs, comparison tool, persistent cart and wishlist.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
