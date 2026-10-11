@@ -26,8 +26,7 @@ interface AuthContextType {
   deleteUser: (userId: string) => void;
   loginAsAdminDemo: () => void;
   resetPassword: (
-    email: string,
-    newPassword?: string
+    email: string
   ) => Promise<{ success: boolean; message: string; sentEmail?: boolean }>;
 }
 
@@ -105,9 +104,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
       const stored = localStorage.getItem(CURRENT_USER_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_USERS[2]; // default to Alex Rivers for customer demo
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Clear any auto-assigned demo user from old sessions so visitors aren't auto-signed in
+        if (parsed?.email === 'alex.rivers@novamobile.demo') {
+          localStorage.removeItem(CURRENT_USER_STORAGE_KEY);
+          return null;
+        }
+        return parsed;
+      }
+      return null;
     } catch {
-      return INITIAL_USERS[2];
+      return null;
     }
   });
 
@@ -321,92 +329,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (
-    email: string,
-    newPassword?: string
+    email: string
   ): Promise<{ success: boolean; message: string; sentEmail?: boolean }> => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
       return { success: false, message: 'Please enter a valid email address.' };
     }
 
-    // 1. Direct password update if newPassword was supplied
-    if (newPassword) {
-      if (newPassword.length < 6) {
-        return { success: false, message: 'Password must be at least 6 characters.' };
-      }
-
-      // Check if administrator email
-      if (cleanEmail === 'sameduhub2025@gmail.com') {
-        setUsersList((prev) =>
-          prev.map((u) =>
-            u.email.toLowerCase() === cleanEmail ? { ...u, password: newPassword } : u
-          )
-        );
-        if (currentUser && currentUser.email.toLowerCase() === cleanEmail) {
-          setCurrentUser((prev) => (prev ? { ...prev, password: newPassword } : null));
-        }
-        showToast('Administrator password updated successfully.', 'success');
-        return { success: true, message: 'Administrator password updated successfully.' };
-      }
-
-      const existingIndex = usersList.findIndex((u) => u.email.toLowerCase() === cleanEmail);
-      if (existingIndex >= 0) {
-        setUsersList((prev) => {
-          const updated = [...prev];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            password: newPassword,
-          };
-          return updated;
-        });
-
-        if (currentUser && currentUser.email.toLowerCase() === cleanEmail) {
-          setCurrentUser((prev) => (prev ? { ...prev, password: newPassword } : null));
-        }
-
-        showToast('Password reset successfully! You can now sign in.', 'success');
-        return { success: true, message: 'Password reset successfully! You can now sign in.' };
-      } else {
-        // Register or bootstrap user with this new password so they can log in seamlessly
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          name: cleanEmail.split('@')[0],
-          email: cleanEmail,
-          role: 'customer',
-          joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          password: newPassword,
-        };
-        setUsersList((prev) => [newUser, ...prev]);
-        showToast('Password updated! You can now sign in with your new password.', 'success');
-        return { success: true, message: 'Password updated! You can now sign in with your new password.' };
-      }
-    }
-
-    // 2. Dispatch password reset link via Firebase Auth
     try {
       const fbRes = await sendFirebasePasswordReset(cleanEmail);
       if (fbRes.success) {
         showToast(fbRes.message, 'success');
         return { success: true, message: fbRes.message, sentEmail: true };
       }
-    } catch (e) {
+      return { success: false, message: fbRes.message };
+    } catch (e: any) {
       console.warn('Firebase password reset dispatch note:', e);
-    }
-
-    // 3. Fallback check: If email exists in registered users
-    const existsLocally = usersList.some((u) => u.email.toLowerCase() === cleanEmail);
-    if (existsLocally) {
       return {
-        success: true,
-        message: 'Account verified! Please choose a new password below to reset your access.',
-        sentEmail: false,
+        success: false,
+        message: e?.message || 'Unable to send password reset email. Please try again later.',
       };
     }
-
-    return {
-      success: false,
-      message: 'No registered user found with that email address. Please check spelling or register.',
-    };
   };
 
   return (

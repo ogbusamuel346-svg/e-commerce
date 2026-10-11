@@ -181,9 +181,8 @@ export const LoginPage: React.FC = () => {
         isOpen={isForgotPasswordOpen}
         onClose={() => setIsForgotPasswordOpen(false)}
         defaultEmail={email}
-        onSuccessReset={(resetEmail, newPass) => {
+        onSuccessReset={(resetEmail) => {
           setEmail(resetEmail);
-          if (newPass) setPassword(newPass);
         }}
       />
     </div>

@@ -239,9 +239,8 @@ export const AdminDashboardPage: React.FC = () => {
           isOpen={isForgotModalOpen}
           onClose={() => setIsForgotModalOpen(false)}
           defaultEmail={adminEmail || 'sameduhub2025@gmail.com'}
-          onSuccessReset={(resetEmail, newPass) => {
+          onSuccessReset={(resetEmail) => {
             setAdminEmail(resetEmail);
-            if (newPass) setAdminPassword(newPass);
           }}
         />
       </div>

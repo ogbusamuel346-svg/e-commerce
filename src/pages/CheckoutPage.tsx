@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useStoreManage } from '../context/StoreManageContext';
 import { Order } from '../types/order';
@@ -20,18 +21,19 @@ import {
 
 export const CheckoutPage: React.FC = () => {
   const { items, subtotal, discountTotal, finalTotal, clearCart } = useCart();
+  const { currentUser } = useAuth();
   const { addOrder } = useStoreManage();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   // Form states
-  const [fullName, setFullName] = useState('Alex Rivers');
-  const [email, setEmail] = useState('alex.rivers@novamobile.demo');
-  const [phone, setPhone] = useState('+1 (555) 019-2834');
-  const [address, setAddress] = useState('742 Evergreen Terrace');
-  const [city, setCity] = useState('Springfield');
-  const [state, setState] = useState('Oregon');
-  const [postalCode, setPostalCode] = useState('97477');
+  const [fullName, setFullName] = useState(currentUser?.name || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'upi' | 'card'>('cod');
 
